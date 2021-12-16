@@ -18,7 +18,7 @@ mask=mask.astype(np.uint8)
 im=Image.fromarray(mask)
 #im.convert('L')
 im.save('test.bmp')
-with open(r'C:\Users\Atchoum\Desktop\controlMM\test.bmp','rb') as opened:
+with open(r'F:\Python\DMD\test.bmp','rb') as opened:
     tosend=np.fromfile(opened,np.uint8).flatten()
 
 L=Lightcrafter(TCP_IP,TCP_PORT)

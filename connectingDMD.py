@@ -16,6 +16,8 @@ import matplotlib.pyplot as plt
 from streamlit_drawable_canvas import st_canvas
 import time
 import copy
+from skimage import measure
+from scipy import ndimage
 
 def main():
     st.set_page_config(page_title="DMD", page_icon=":microscope:",layout="wide")
@@ -24,7 +26,7 @@ def main():
     
     #dmdzone is tthe mask of the zone of the dmd in the field of view of the app (defined as 512,512)
     if 'dmd_zone' not in st.session_state:
-        st.session_state.dmd_zone=np.ones((512,512))
+        st.session_state.dmd_zone=np.zeros((512,512))
     if 'cropped_index' not in st.session_state:
             st.session_state.cropped_index=np.ix_((st.session_state.dmd_zone>0).any(1),(st.session_state.dmd_zone>0).any(0))
         
@@ -50,6 +52,8 @@ def main():
             
             st.session_state.L=Lightcrafter(TCP_IP,TCP_PORT)
             st.session_state.Lstate=st.session_state.L.connect()
+            time.sleep(2)
+            st.session_state.L.setStaticColor(0xf,0xf,0xf)
             if st.session_state.Lstate:
                 st.write('DMD connected')
                 #st.session_state.L.setStaticColor(0xf,0xf,0xf)
@@ -72,13 +76,12 @@ def main():
             st.session_state.dmd_zone=copy.deepcopy(st.session_state.mask_act)
             #look at the index of the dmd_zone
             st.session_state.cropped_index=np.ix_((st.session_state.dmd_zone>0).any(1),(st.session_state.dmd_zone>0).any(0))
-            st.session_state.mask_act=np.zeros((512,512))
+            image_with_seg(np.zeros((512,512)),contour(st.session_state.dmd_zone))
+            #st.session_state.mask_act=np.zeros((512,512))
 
         if st.button('Disconnect DMD'):
             st.session_state.L.disconnect()
             st.session_state.Lstate=False
-        
-        
         
     with c2:  
         if st.session_state.show_image:
@@ -121,10 +124,13 @@ def send_pattern():
     else:
         with open('test9.bmp','rb') as opened:
                 tosend=np.fromfile(opened,np.uint8).flatten()
+                
+        st.session_state.L.setStaticColor(0xf,0xf,0xf)
+        time.sleep(2)
         st.session_state.L.connect()
         time.sleep(1)
         st.session_state.L.setdisplayModeStatic()
-        time.sleep(1)
+        time.sleep(2)
         st.session_state.L.setBMPImage(tosend)
         time.sleep(2)
         st.session_state.L.setdisplayModePatternSequence()
@@ -160,6 +166,28 @@ def make_canvas():
         drawing_mode=st.session_state.drawing_mode,
         key="canvas",
     )
-    
+
+def contour(binary):
+    #img=(img/2^8).astype(np.uint8)
+    label_img, cc_num = ndimage.label(binary)
+
+    contours = measure.find_contours(label_img)
+    if len(contours)>0:
+        contour=contours[0]
+    else:
+        contour=np.array([None])
+    return contour
+
+def image_with_seg(img,contour):
+    fig = plt.figure()
+    #original image
+    a=plt.imshow(img,cmap='gray')
+    #find mask and contour
+    if contour.any():        
+        a.axes.plot(list(map(int,contour[:, 1])), list(map(int,contour[:, 0])), linewidth=2)
+    a.axes.get_xaxis().set_visible(False)
+    a.axes.get_yaxis().set_visible(False)
+    return fig
+
 if __name__ == "__main__":
     main()
