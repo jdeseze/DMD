@@ -131,14 +131,26 @@ def send_pattern():
         im.save('test.bmp')
         with open(r'F:\Python\DMD\test.bmp','rb') as opened:
             tosend=np.fromfile(opened,np.uint8).flatten()
+        t1=time.time()
         st.session_state.L.setdisplayModeStatic()
-        time.sleep(2)
+        t2=time.time()
+        time.sleep(0.5)
+        t3=time.time()
         st.session_state.L.setBMPImage(tosend)
-        time.sleep(2)
-        st.session_state.L.setdisplayModePatternSequence()
-        time.sleep(2)
+        t4=time.time()
+
+# =============================================================================
+#         time.sleep(2)
+#         st.session_state.L.setdisplayModePatternSequence()
+# =============================================================================
+        time.sleep(1)
         st.session_state.L.setdisplayPatternSequenceSettings()
-    
+        t5=time.time()
+        t2-t1
+        t3-t1
+        t4-t1
+        t5-t1
+        
 def make_canvas():
     img=np.array(st.session_state.disp_image)
 
