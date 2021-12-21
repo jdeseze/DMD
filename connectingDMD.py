@@ -49,13 +49,17 @@ def main():
         if st.button('Connect DMD'):
             TCP_IP = '192.168.7.2'
             TCP_PORT = 0x5555
+            if False:#st.session_state.Lstate:
+                st.write('DMD already connected')
+            else:
+                st.session_state.L=Lightcrafter(TCP_IP,TCP_PORT)
+                st.session_state.Lstate=st.session_state.L.connect()
+                time.sleep(1)
             
-            st.session_state.L=Lightcrafter(TCP_IP,TCP_PORT)
-            st.session_state.Lstate=st.session_state.L.connect()
-            time.sleep(2)
-            st.session_state.L.setStaticColor(0xf,0xf,0xf)
             if st.session_state.Lstate:
                 st.write('DMD connected')
+                st.session_state.L.setStaticColor(0xf,0xf,0xf)
+                time.sleep(2)
                 #st.session_state.L.setStaticColor(0xf,0xf,0xf)
                 st.session_state.L.setdisplayModeStatic()
             else: 
@@ -119,16 +123,14 @@ def acquire():
     st.session_state.show_image=True  
 
 def send_pattern():
+
     if not st.session_state.Lstate:
         st.write('DMD not connected')
     else:
-        with open('test9.bmp','rb') as opened:
-                tosend=np.fromfile(opened,np.uint8).flatten()
-                
-        st.session_state.L.setStaticColor(0xf,0xf,0xf)
-        time.sleep(2)
-        st.session_state.L.connect()
-        time.sleep(1)
+        im=Image.fromarray((st.session_state.dmd.T*255).astype(np.uint8)).resize((912,1140))
+        im.save('test.bmp')
+        with open(r'F:\Python\DMD\test.bmp','rb') as opened:
+            tosend=np.fromfile(opened,np.uint8).flatten()
         st.session_state.L.setdisplayModeStatic()
         time.sleep(2)
         st.session_state.L.setBMPImage(tosend)
