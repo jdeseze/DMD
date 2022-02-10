@@ -18,7 +18,7 @@ mask=mask.astype(np.uint8)
 im=Image.fromarray(mask)
 #im.convert('L')
 im.save('test.bmp')
-with open(r'F:\Python\DMD\test.bmp','rb') as opened:
+with open(r'D:/JEAN/DMD/test8.bmp','rb') as opened:
     tosend=np.fromfile(opened,np.uint8).flatten()
 
 L=Lightcrafter(TCP_IP,TCP_PORT)
@@ -28,11 +28,13 @@ L.setStaticColor(0xf,0xf,0xf)
 L.setdisplayModeInternalPattern()
 L.setPattern(0x7)
 
+L.setdisplayModeStatic()
+L.setBMPImage(tosend)
+
 L.setdisplayModePatternSequence()
 L.setdisplayPatternSequenceSettings()
 
-L.setdisplayModeStatic()
-L.setBMPImage(tosend)
+
 
 #L.disconnect()
 

@@ -26,7 +26,9 @@ def main():
     
     #dmdzone is tthe mask of the zone of the dmd in the field of view of the app (defined as 512,512)
     if 'dmd_zone' not in st.session_state:
-        st.session_state.dmd_zone=np.zeros((512,512))
+        st.session_state.dmd_zone=np.array(Image.open('dmd_zone.png'))
+        st.session_state.cropped_index=np.ix_((st.session_state.dmd_zone>0).any(1),(st.session_state.dmd_zone>0).any(0))
+    
     if 'cropped_index' not in st.session_state:
             st.session_state.cropped_index=np.ix_((st.session_state.dmd_zone>0).any(1),(st.session_state.dmd_zone>0).any(0))
         
@@ -60,7 +62,6 @@ def main():
                 st.write('DMD connected')
                 st.session_state.L.setStaticColor(0xf,0xf,0xf)
                 time.sleep(2)
-                #st.session_state.L.setStaticColor(0xf,0xf,0xf)
                 st.session_state.L.setdisplayModeStatic()
             else: 
                 st.write('Unable to connect DMD')
@@ -102,10 +103,10 @@ def main():
             
     with c3:
         if st.session_state.show_image:
-            st.image(st.session_state.dmd_zone*255,use_column_width=True,output_format='PNG')
             st.image(st.session_state.dmd.T*255,use_column_width=True,output_format='PNG')    
-
-
+        if st.button('save zone'):
+            st.session_state.dmd_zone.savefig('dmd_zone.png')
+            Image.fromarray(st.session_state.cropped_index).save('dmd_zone.png')
 
 def acquire():
     if st.session_state.soft=='Metamorph':
@@ -128,13 +129,15 @@ def send_pattern():
         st.write('DMD not connected')
     else:
         im=Image.fromarray((st.session_state.dmd.T*255).astype(np.uint8)).resize((912,1140))
-        im.save('test.bmp')
-        with open(r'F:\Python\DMD\test.bmp','rb') as opened:
+        im.save('D:/JEAN/DMD/test.bmp')
+        st.write('...')
+        with open(r'D:/JEAN/DMD/test.bmp','rb') as opened:
             tosend=np.fromfile(opened,np.uint8).flatten()
+
         t1=time.time()
         st.session_state.L.setdisplayModeStatic()
         t2=time.time()
-        time.sleep(0.5)
+        time.sleep(1)
         t3=time.time()
         st.session_state.L.setBMPImage(tosend)
         t4=time.time()

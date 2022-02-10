@@ -149,7 +149,7 @@ class Lightcrafter:
     def setBMPImage( self, imageData):
         #self.setdisplayModeStatic()
         
-        MAX_PAYLOAD_SIZE = 512*32
+        MAX_PAYLOAD_SIZE = 65535
         numberOfChunks = np.ceil( imageData.size / 65535 )
         #print(numberOfChunks)
 # =============================================================================
@@ -201,7 +201,7 @@ class Lightcrafter:
 
     def sendData( self, packet):
         #limit packet size
-        MAX_SIZE = 65535#512*8
+        MAX_SIZE = 512#512*8
         buffer = packet
         #print(packet)
         while buffer.any():
