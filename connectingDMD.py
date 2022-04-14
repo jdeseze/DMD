@@ -53,6 +53,8 @@ def main():
             TCP_PORT = 0x5555
             if False:#st.session_state.Lstate:
                 st.write('DMD already connected')
+                st.session_state.cropped_index=np.ix_((st.session_state.dmd_zone>0).any(1),(st.session_state.dmd_zone>0).any(0))
+                image_with_seg(np.zeros((512,512)),contour(st.session_state.dmd_zone))
             else:
                 st.session_state.L=Lightcrafter(TCP_IP,TCP_PORT)
                 st.session_state.Lstate=st.session_state.L.connect()
@@ -63,9 +65,14 @@ def main():
                 st.session_state.L.setStaticColor(0xf,0xf,0xf)
                 time.sleep(2)
                 st.session_state.L.setdisplayModeStatic()
+                st.session_state.cropped_index=np.ix_((st.session_state.dmd_zone>0).any(1),(st.session_state.dmd_zone>0).any(0))
+                image_with_seg(np.zeros((512,512)),contour(st.session_state.dmd_zone))
             else: 
                 st.write('Unable to connect DMD')
         
+        if st.button('Send previous pattern to DMD'):
+            send_previous_pattern()
+            
         if st.button('Send pattern to DMD'):
             send_pattern()
         
@@ -107,6 +114,9 @@ def main():
         if st.button('save zone'):
             st.session_state.dmd_zone.savefig('dmd_zone.png')
             Image.fromarray(st.session_state.cropped_index).save('dmd_zone.png')
+        if st.button('save act'):
+            Image.fromarray(st.session_state.dmd).save('activation.png') 
+        
 
 def acquire():
     if st.session_state.soft=='Metamorph':
@@ -153,7 +163,24 @@ def send_pattern():
         t3-t1
         t4-t1
         t5-t1
-        
+
+
+def send_previous_pattern():
+    if not st.session_state.Lstate:
+        st.write('DMD not connected')
+    else:
+        im=Image.fromarray(((np.array(Image.open('activation.png'))>0).T*255).astype(np.uint8)).resize((912,1140))
+        #im=Image.open('activation.png')
+        im.save('D:/JEAN/DMD/test1.bmp')
+        st.write('...')
+        with open(r'D:/JEAN/DMD/test1.bmp','rb') as opened:
+            tosend=np.fromfile(opened,np.uint8).flatten()
+        st.session_state.L.setdisplayModeStatic()
+        time.sleep(1)
+        st.session_state.L.setBMPImage(tosend)
+        time.sleep(1)
+        st.session_state.L.setdisplayPatternSequenceSettings()
+    
 def make_canvas():
     img=np.array(st.session_state.disp_image)
 
