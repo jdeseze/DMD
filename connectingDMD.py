@@ -91,9 +91,16 @@ def main():
             image_with_seg(np.zeros((512,512)),contour(st.session_state.dmd_zone))
             #st.session_state.mask_act=np.zeros((512,512))
 
-        if st.button('Disconnect DMD'):
-            st.session_state.L.disconnect()
-            st.session_state.Lstate=False
+        if st.button('calibrate'):
+            st.session_state.dmd=np.zeros((570,912))
+            st.session_state.dmd[150:420,321:591]=1
+            send_pattern()
+            acquire()            
+            'draw the square you see on the image'
+            
+            'calibration is done!'
+                
+                
         
     with c2:  
         if st.session_state.show_image:
